@@ -1,7 +1,7 @@
-Instructions for build using CMake (Console):\n
--First off, make a build directory in the repository. The name build, for example, is marked off in .gitignore.\n
-	->mkdir build\n
-	->cd build\n
--Build project\n
-	->cmake ..\n
-	->cmake --build .\n
+Instructions for build using CMake (Console):<br />
+-First off, make a build directory in the repository. The name build, for example, is marked off in .gitignore.<br />
+	->mkdir build<br />
+	->cd build<br />
+-Build project<br />
+	->cmake ..<br />
+	->cmake --build .<br />
