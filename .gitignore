@@ -1,3 +1,3 @@
-build/
+Debug/
+FishTank/Debug/
 .gitignore.bak
-readme.md.bak
