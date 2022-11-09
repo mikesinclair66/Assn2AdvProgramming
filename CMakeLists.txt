@@ -8,5 +8,5 @@ set(SOURCE main.cpp)
 add_executable(Assn2AdvProgramming ${SOURCE})
 
 target_include_directories(Assn2AdvProgramming PUBLIC
-                           "${CMAKE_CURRENT_LIST_DIR}"
+                           "${CMAKE_CURRENT_LIST_DIR}/include"
                            )
