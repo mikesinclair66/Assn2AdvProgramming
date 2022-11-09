@@ -88,7 +88,7 @@ void startTankDemoThreads(const char *background, const char *bubble, const char
 		}
 		threadHandles[i] = CreateThread(NULL, 0, LPTHREAD_START_ROUTINE(tankDemoThread), &params[i], 0, &params[i].threadId);
 		if (threadHandles[i] == NULL) {
-			MessageBox(NULL, L"Couldn't start thread", L"FATAL", MB_OK);
+			MessageBox(NULL, "Couldn't start thread", "FATAL", MB_OK);
 			exit(1);
 		}
 	}
