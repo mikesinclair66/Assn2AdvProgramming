@@ -6,6 +6,7 @@
 #include <MMSYSTEM.H>
 #include <emmintrin.h>
 #include "TankDemo.h"
+#include <iostream>
 
 #pragma comment(lib, "winmm.lib")
 
@@ -98,10 +99,50 @@ void startTankDemoThreads(const char *background, const char *bubble, const char
 	for (int i = 0; i < 3; i++) TerminateThread(threadHandles[i], 0);
 }
 
+#pragma region AssignmentQuestions3and4
 
+class Question3Class
+{
+	public:
+		int num;
+};
+
+void valueFunction(Question3Class val)
+{
+	std::cout << val.num << std::endl;
+}
+
+void referenceFunction(Question3Class &val2)
+{
+	std::cout << val2.num << std::endl;
+}
+
+inline int question4Function()
+{
+	int num1 = 1;
+	int num2 = 1;
+	int result = num1 + num2;
+	return result;
+}
+
+#pragma endregion
 
 int main(int argc, char* argv[])
 {
+
+#pragma region AssignmentQuestions3and4Implementation
+	Question3Class obj = Question3Class();
+	obj.num = 1;
+
+	valueFunction(obj);
+
+	obj.num = 2;
+	
+	referenceFunction(obj);
+
+	question4Function();
+#pragma endregion
+
 	int optarg = 1;
 	while (optarg < argc) {
 		if ((argc - optarg) < 2) {
