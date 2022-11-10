@@ -1,5 +1,6 @@
 #include "ImageOperators.h"
 #include <emmintrin.h>
+#include <iostream>
 
 #pragma warning(disable:4018) // signed/unsigned mismatch
 
