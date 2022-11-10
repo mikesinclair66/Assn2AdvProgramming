@@ -10,19 +10,24 @@
 	t = _mm_loadu_si128((__m128i *) pSrc[(comp)]);                      \
 	_mm_storeu_si128((__m128i *) pDst[(comp)], _mm_packus_epi16(_mm_srli_epi16(_mm_add_epi16(_mm_mullo_epi16(_mm_unpacklo_epi8(t, zero), a0), _mm_mullo_epi16(_mm_sub_epi16(ff, a0), d0)), 8), _mm_srli_epi16(_mm_add_epi16(_mm_mullo_epi16(_mm_unpackhi_epi8(t, zero), a1), _mm_mullo_epi16(_mm_sub_epi16(ff, a1), d1)), 8)))                      
 
+//src - bubble image, dst - background, dstXOffset - x coord, dstYOffset - y coord
 void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int dstYOffset, SimdMode simdMode)
 {
 	if (src.spectrum() != 4) throw cimg_library::CImgException("blitBlend: Src image is missing ALPHA channel");
 
 	// calcualte our SIMD blend area (defined by X0, Y0 to X1, Y1). Take into account alignment restrictions;
 
+	//X1: bubble image width + offset; basically the end x coordinate of the bubble
 	unsigned int X1 = src.width() + dstXOffset;
 	if (X1 > dst.width()) X1 = dst.width();
+	//X0: start x coordinate of the bubble
 	unsigned int X0 = dstXOffset;
 
+	//Y1: endY of the bubble
 	unsigned int Y1 = src.height() + dstYOffset;
 	if (Y1 > dst.height()) Y1 = dst.height();
 
+	//Y0: startY of the bubble
 	unsigned int Y0 = dstYOffset;
 	// TODO: Y0 & Y1 need to be aligned.
 
@@ -43,6 +48,7 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 		//*** __m128i maps to 128-bit XMM registers
 		__m128i ff = _mm_loadu_si128((__m128i *)ffconst);
 
+		//populates the window with pure assembly; fastest.
 		if (simdMode == SIMD_EMMX) {
 			for (unsigned x = X0; x < X1; x += 16) {
 				__asm {
@@ -177,6 +183,7 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				pDst[1] += 16;
 				pDst[2] += 16;
 			}
+		//populates the window without use of assembly.
 		} else if (simdMode == SIMD_NONE) {
 			for (unsigned int x = X0; x < X1; x++) {
 				short diff;
@@ -203,6 +210,7 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				pDst[1] += 1;
 				pDst[2] += 1;
 			}
+		//populates the window with a c++ based assembly.
 		} else if (simdMode == SIMD_EMMX_INTRINSICS) {
 
 			for (unsigned x = X0; x < X1; x += 16) {
