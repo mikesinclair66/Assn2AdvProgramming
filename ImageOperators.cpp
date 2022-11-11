@@ -43,6 +43,7 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 		pDst[0] = dst.data(X0, y, 0, 0);
 		pDst[1] = dst.data(X0, y, 0, 1);
 		pDst[2] = dst.data(X0, y, 0, 2);
+		pDst[3] = dst.data(X0, y, 0, 3);
 
 		short ffconst[8] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 		//*** __m128i maps to 128-bit XMM registers
@@ -54,7 +55,8 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				__asm {
 					pxor xmm0, xmm0 // xmm0 <- 0
 					mov eax, dword ptr [pSrc + 12]
-					movdqu xmm1, [eax]; xmm1 <- *pSrc[3]
+					//movdqu xmm1, [eax]; xmm1 <- *pSrc[3]
+					movdqu xmm1, [eax]; xmm1 < -*pDst[3]
 					movdqa xmm2, xmm1; 
 					punpcklbw xmm2, xmm0; // xmm2 <- a0, 16bit
 					movdqa xmm3, xmm1;
@@ -177,11 +179,12 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				pSrc[0] += 16;
 				pSrc[1] += 16;
 				pSrc[2] += 16;
-				pSrc[3] += 16;
+				//pSrc[3] += 16;
 
 				pDst[0] += 16;
 				pDst[1] += 16;
 				pDst[2] += 16;
+				pDst[3] += 16;
 			}
 		//populates the window without use of assembly.
 		} else if (simdMode == SIMD_NONE) {
@@ -190,25 +193,29 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				short tmp;
 
 				diff = *pSrc[0] - *pDst[0];
-				tmp = short(*pSrc[3] * diff) >> 8;
+				//tmp = short(*pSrc[3] * diff) >> 8;
+				tmp = short(*pDst[3] * diff) >> 8;
 				*pDst[0] = tmp + *pDst[0];
 
 				diff = *pSrc[1] - *pDst[1];
-				tmp = short(*pSrc[3] * diff) >> 8;
+				//tmp = short(*pSrc[3] * diff) >> 8;
+				tmp = short(*pDst[3] * diff) >> 8;
 				*pDst[1] = tmp + *pDst[1];
 
 				diff = *pSrc[2] - *pDst[2];
-				tmp = short(*pSrc[3] * diff) >> 8;
+				//tmp = short(*pSrc[3] * diff) >> 8;
+				tmp = short(*pDst[3] * diff) >> 8;
 				*pDst[2] = tmp + *pDst[2];
 
 				pSrc[0] += 1;
 				pSrc[1] += 1;
 				pSrc[2] += 1;
-				pSrc[3] += 1;
+				//pSrc[3] += 1;
 
 				pDst[0] += 1;
 				pDst[1] += 1;
 				pDst[2] += 1;
+				pDst[3] += 1;
 			}
 		//populates the window with a c++ based assembly.
 		} else if (simdMode == SIMD_EMMX_INTRINSICS) {
@@ -218,7 +225,8 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				register __m128i diff0, tmp0, diff1, tmp1, t;
 				zero = _mm_setzero_si128();
 				// load alpha
-				t = _mm_loadu_si128((__m128i *) pSrc[3]);
+				//t = _mm_loadu_si128((__m128i *) pSrc[3]);
+				t = _mm_loadu_si128((__m128i *) pDst[3]);
 				a0 = _mm_unpacklo_epi8(t, zero);
 				a1 = _mm_unpackhi_epi8(t, zero);
 
@@ -229,11 +237,12 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				pSrc[0] += 16;
 				pSrc[1] += 16;
 				pSrc[2] += 16;
-				pSrc[3] += 16;
+				//pSrc[3] += 16;
 
 				pDst[0] += 16;
 				pDst[1] += 16;
 				pDst[2] += 16;
+				pDst[3] += 16;
 			}
 		}
 
