@@ -37,7 +37,7 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 		pSrc[0] = src.data(0, srcLine, 0, 0);
 		pSrc[1] = src.data(0, srcLine, 0, 1);
 		pSrc[2] = src.data(0, srcLine, 0, 2);
-		pSrc[3] = src.data(0, srcLine, 0, 3);
+		//pSrc[3] = src.data(0, srcLine, 0, 3);
 
 		unsigned char *pDst[4];
 		pDst[0] = dst.data(X0, y, 0, 0);
@@ -54,9 +54,10 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 			for (unsigned x = X0; x < X1; x += 16) {
 				__asm {
 					pxor xmm0, xmm0 // xmm0 <- 0
-					mov eax, dword ptr [pSrc + 12]
+					//mov eax, dword ptr [pSrc + 12]
+					mov eax, dword ptr [pDst + 12]
 					//movdqu xmm1, [eax]; xmm1 <- *pSrc[3]
-					movdqu xmm1, [eax]; xmm1 < -*pDst[3]
+					movdqu xmm1, [eax]; xmm1 <- *pDst[3]
 					movdqa xmm2, xmm1; 
 					punpcklbw xmm2, xmm0; // xmm2 <- a0, 16bit
 					movdqa xmm3, xmm1;
