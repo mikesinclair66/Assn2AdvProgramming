@@ -13,7 +13,7 @@
 //src - bubble image, dst - background, dstXOffset - x coord, dstYOffset - y coord
 void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int dstYOffset, SimdMode simdMode)
 {
-	if (src.spectrum() != 4) throw cimg_library::CImgException("blitBlend: Src image is missing ALPHA channel");
+	if (dst.spectrum() != 4) throw cimg_library::CImgException("blitBlend: Dst image is missing ALPHA channel");
 
 	// calcualte our SIMD blend area (defined by X0, Y0 to X1, Y1). Take into account alignment restrictions;
 
