@@ -5,11 +5,21 @@
 #pragma warning(disable:4018) // signed/unsigned mismatch
 
 #define EMMX_BLEND(comp) \
-	t = _mm_loadu_si128((__m128i *) pDst[(comp)]);                      \
+	t = _mm_loadu_si128((__m128i *) pDst[(comp)]);       /* loads 128-bit location */                \
 	d0 = _mm_unpacklo_epi8(t, zero);                                    \
 	d1 = _mm_unpackhi_epi8(t, zero);                                    \
-	t = _mm_loadu_si128((__m128i *) pSrc[(comp)]);                      \
-	_mm_storeu_si128((__m128i *) pDst[(comp)], _mm_packus_epi16(_mm_srli_epi16(_mm_add_epi16(_mm_mullo_epi16(_mm_unpacklo_epi8(t, zero), a0), _mm_mullo_epi16(_mm_sub_epi16(ff, a0), d0)), 8), _mm_srli_epi16(_mm_add_epi16(_mm_mullo_epi16(_mm_unpackhi_epi8(t, zero), a1), _mm_mullo_epi16(_mm_sub_epi16(ff, a1), d1)), 8)))                      
+	t = _mm_loadu_si128((__m128i *) pSrc[(comp)]);       /* loads 128-bit location */               \
+	_mm_storeu_si128((__m128i *) pDst[(comp)],							\
+	_mm_packus_epi16(													\
+	_mm_srli_epi16(					/* Shift 8 bits to the right */									\
+	_mm_add_epi16(_mm_mullo_epi16(_mm_unpacklo_epi8(t, zero), a0),	/* t * a0 */	\
+	_mm_mullo_epi16(_mm_sub_epi16(ff, a0), d0)), /* (ff - a0) * d0 */ \
+	8), _mm_srli_epi16(													/* shift 8 bits to the right */\
+	_mm_add_epi16(_mm_mullo_epi16(_mm_unpackhi_epi8(t, zero), a1), /* t * a1 */ \
+	_mm_mullo_epi16( \
+	_mm_sub_epi16(ff, a1), /* ff - a1 */ \
+	d1) /* (ff - a1) * d1 */\
+	), 8)))                 
 
 //src - bubble image, dst - background, dstXOffset - x coord, dstYOffset - y coord
 void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int dstYOffset, SimdMode simdMode)
