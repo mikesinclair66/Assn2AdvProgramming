@@ -134,41 +134,41 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 					psubw  xmm5, xmm3; // xmm5 = ff - a1
 					pmullw xmm7, xmm5; // xmm7 = (ff - a1) * d1;
 					// load the source;
-					mov eax, dword ptr[pSrc + 4];
+					mov eax, dword ptr[pSrc + 4]; // accesses 32-bit locations pSrc[1]
 					movdqu xmm1, [eax]; // xmm1 = pSrc[0]
 					// low bits of pSrc[0]
-					movdqa xmm5, xmm1;
+					movdqa xmm5, xmm1; // xmm5 = pSrc[0]
 					punpcklbw xmm5, xmm0; // xmm5 = pSrc[0], low, 16 bit;
 					pmullw xmm5, xmm2; // xmm5 = s0 * a0;
 					paddw xmm6, xmm5; // xmm6 = s0 * a0 + (ff - a0) * d0;
 					// high bits of pSrc[0]
-					movdqa xmm5, xmm1;
-					punpckhbw xmm5, xmm0;
+					movdqa xmm5, xmm1; // xmm5 = pSrc[0]
+					punpckhbw xmm5, xmm0; // xmm5 = pSrc[0], high, 16 bit
 					pmullw xmm5, xmm3; // xmm5 = s1 * a1
 					paddw xmm7, xmm5; // xmm7 = s1 * a1 + (ff - a1) * d1;
 					// shift the results;
-					psrlw xmm6, 8;
-					psrlw xmm7, 8;
+					psrlw xmm6, 8; // shifts bits 8 to the right
+					psrlw xmm7, 8; // shifts bits 8 to the right
 					// pack back
 					packuswb xmm6, xmm7; // xmm6 <- xmm6{}xmm7 low bits;
-					mov eax, dword ptr [pDst + 4];
+					mov eax, dword ptr [pDst + 4]; // eax assigned 32-bit location pDst[1]
 					movdqu [eax], xmm6; // done for this component;
 
 					// blending the blue;
 					// load d0
 					mov eax, dword ptr[pDst + 8]; 
 					movdqu xmm1, [eax]; // xmm1 = pDst[0]
-					movdqa xmm6, xmm1;
+					movdqa xmm6, xmm1; // xmm6 = pDst[0]
 					punpcklbw xmm6, xmm0; // xmm6 <- pDst[0] low 16bit
-					movdqa xmm7, xmm1;
+					movdqa xmm7, xmm1; // xmm7 = pDst[0]
 					punpckhbw xmm7, xmm0; // xmm7 <- pDst[0] high, 16 bit
 					// load the ff constant
 					movdqu xmm4, [ffconst]; // xmm4 <- ff
-					movdqa xmm5, xmm4; 
+					movdqa xmm5, xmm4; // xmm5 <- ff
 					psubw  xmm5, xmm2; // xmm5 = ff - a0
 					pmullw xmm6, xmm5; // xmm6 = (ff - a0) * d0;
 					// now for the upper bits
-					movdqa xmm5, xmm4;
+					movdqa xmm5, xmm4; // xmm5 <- ff
 					psubw  xmm5, xmm3; // xmm5 = ff - a1
 					pmullw xmm7, xmm5; // xmm7 = (ff - a1) * d1;
 					// load the source;
@@ -180,16 +180,16 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 					pmullw xmm5, xmm2; // xmm5 = s0 * a0;
 					paddw xmm6, xmm5; // xmm6 = s0 * a0 + (ff - a0) * d0;
 					// high bits of pSrc[0]
-					movdqa xmm5, xmm1;
-					punpckhbw xmm5, xmm0;
+					movdqa xmm5, xmm1; // xmm5 = pSrc[0]
+					punpckhbw xmm5, xmm0; //xmm5 = pSrc[0], high, 16 bit;
 					pmullw xmm5, xmm3; // xmm5 = s1 * a1
 					paddw xmm7, xmm5; // xmm7 = s1 * a1 + (ff - a1) * d1;
 					// shift the results;
-					psrlw xmm6, 8;
-					psrlw xmm7, 8;
+					psrlw xmm6, 8; // shifts bits 8 to to the right
+					psrlw xmm7, 8; // shifts bits 8 to the right
 					// pack back
 					packuswb xmm6, xmm7; // xmm6 <- xmm6{}xmm7 low bits;
-					mov eax, dword ptr [pDst + 8];
+					mov eax, dword ptr [pDst + 8]; // eax accesses 32-bit location at pDst[2]
 					movdqu [eax], xmm6; // done for this component;
 				};
 				pSrc[0] += 16;
@@ -234,15 +234,16 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 			for (unsigned x = X0; x < X1; x += 16) {
 				register __m128i s0, s1, d0, d1, a0, a1, r0, r1, zero;
 				register __m128i diff0, tmp0, diff1, tmp1, t;
-				zero = _mm_setzero_si128();
+				zero = _mm_setzero_si128(); // allocates 128-bit address
 				// load alpha
-				t = _mm_loadu_si128((__m128i *) pSrc[3]);
+				// fills registers with color values
+				t = _mm_loadu_si128((__m128i *) pSrc[3]); // allocates 128-bit address assigned to color
 				a0 = _mm_unpacklo_epi8(t, zero);
 				a1 = _mm_unpackhi_epi8(t, zero);
 
-			    EMMX_BLEND(0);
-				EMMX_BLEND(1);
-				EMMX_BLEND(2);
+			    EMMX_BLEND(0);//performs blend operations on r
+				EMMX_BLEND(1);//performs blend operations on g
+				EMMX_BLEND(2);//performs blend operations on b
 
 				pSrc[0] += 16;
 				pSrc[1] += 16;
