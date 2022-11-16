@@ -13,7 +13,7 @@
 //src - bubble image, dst - background, dstXOffset - x coord, dstYOffset - y coord
 void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int dstYOffset, SimdMode simdMode)
 {
-	if (src.spectrum() != 4) throw cimg_library::CImgException("blitBlend: Src image is missing ALPHA channel");
+	if (dst.spectrum() != 4) throw cimg_library::CImgException("blitBlend: Dst image is missing ALPHA channel");
 
 	// calcualte our SIMD blend area (defined by X0, Y0 to X1, Y1). Take into account alignment restrictions;
 
@@ -37,12 +37,13 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 		pSrc[0] = src.data(0, srcLine, 0, 0);
 		pSrc[1] = src.data(0, srcLine, 0, 1);
 		pSrc[2] = src.data(0, srcLine, 0, 2);
-		pSrc[3] = src.data(0, srcLine, 0, 3);
+		//pSrc[3] = src.data(0, srcLine, 0, 3);
 
 		unsigned char *pDst[4];
 		pDst[0] = dst.data(X0, y, 0, 0);
 		pDst[1] = dst.data(X0, y, 0, 1);
 		pDst[2] = dst.data(X0, y, 0, 2);
+		pDst[3] = dst.data(X0, y, 0, 3);
 
 		short ffconst[8] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 		//*** __m128i maps to 128-bit XMM registers
@@ -53,8 +54,10 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 			for (unsigned x = X0; x < X1; x += 16) {
 				__asm {
 					pxor xmm0, xmm0 // xmm0 <- 0
-					mov eax, dword ptr [pSrc + 12]
-					movdqu xmm1, [eax]; xmm1 <- *pSrc[3]
+					//mov eax, dword ptr [pSrc + 12]
+					mov eax, dword ptr [pDst + 12]
+					//movdqu xmm1, [eax]; xmm1 <- *pSrc[3]
+					movdqu xmm1, [eax]; xmm1 <- *pDst[3]
 					movdqa xmm2, xmm1; 
 					punpcklbw xmm2, xmm0; // xmm2 <- a0, 16bit
 					movdqa xmm3, xmm1;
@@ -177,11 +180,12 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				pSrc[0] += 16;
 				pSrc[1] += 16;
 				pSrc[2] += 16;
-				pSrc[3] += 16;
+				//pSrc[3] += 16;
 
 				pDst[0] += 16;
 				pDst[1] += 16;
 				pDst[2] += 16;
+				pDst[3] += 16;
 			}
 		//populates the window without use of assembly.
 		} else if (simdMode == SIMD_NONE) {
@@ -190,25 +194,29 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				short tmp;
 
 				diff = *pSrc[0] - *pDst[0];
-				tmp = short(*pSrc[3] * diff) >> 8;
+				//tmp = short(*pSrc[3] * diff) >> 8;
+				tmp = short(*pDst[3] * diff) >> 8;
 				*pDst[0] = tmp + *pDst[0];
 
 				diff = *pSrc[1] - *pDst[1];
-				tmp = short(*pSrc[3] * diff) >> 8;
+				//tmp = short(*pSrc[3] * diff) >> 8;
+				tmp = short(*pDst[3] * diff) >> 8;
 				*pDst[1] = tmp + *pDst[1];
 
 				diff = *pSrc[2] - *pDst[2];
-				tmp = short(*pSrc[3] * diff) >> 8;
+				//tmp = short(*pSrc[3] * diff) >> 8;
+				tmp = short(*pDst[3] * diff) >> 8;
 				*pDst[2] = tmp + *pDst[2];
 
 				pSrc[0] += 1;
 				pSrc[1] += 1;
 				pSrc[2] += 1;
-				pSrc[3] += 1;
+				//pSrc[3] += 1;
 
 				pDst[0] += 1;
 				pDst[1] += 1;
 				pDst[2] += 1;
+				pDst[3] += 1;
 			}
 		//populates the window with a c++ based assembly.
 		} else if (simdMode == SIMD_EMMX_INTRINSICS) {
@@ -218,7 +226,8 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				register __m128i diff0, tmp0, diff1, tmp1, t;
 				zero = _mm_setzero_si128();
 				// load alpha
-				t = _mm_loadu_si128((__m128i *) pSrc[3]);
+				//t = _mm_loadu_si128((__m128i *) pSrc[3]);
+				t = _mm_loadu_si128((__m128i *) pDst[3]);
 				a0 = _mm_unpacklo_epi8(t, zero);
 				a1 = _mm_unpackhi_epi8(t, zero);
 
@@ -229,11 +238,12 @@ void blitBlend( UCImg &src, UCImg &dst, unsigned int dstXOffset, unsigned int ds
 				pSrc[0] += 16;
 				pSrc[1] += 16;
 				pSrc[2] += 16;
-				pSrc[3] += 16;
+				//pSrc[3] += 16;
 
 				pDst[0] += 16;
 				pDst[1] += 16;
 				pDst[2] += 16;
+				pDst[3] += 16;
 			}
 		}
 
